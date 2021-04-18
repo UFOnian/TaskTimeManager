@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="AntBuild" default="clean" basedir=".">
+  <!--
+      定数の定義。
+      build.xml上で使用する定数を定義する。
+  -->
+
+  <!--
+      ビルドのベースディレクトリ。
+      何もなければ${basedir}を使っても問題ありませんが、
+      他プロジェクトのbuild.xmlからこのbuild.xmlのタスクを呼び出したとき、
+      basedirがずれてしまうことがあるので、別に定義しておく。
+  -->
+  <dirname property="base" file="${ant.file}"/>
+
+  <property name="jarname" value="TaskTimeManager"/>
+  <property name="zipname" value="AntZip"/>
+
+  <property name="src.enc" value="UTF-8"/>
+
+  <!-- ビルド対象 -->
+  <property name="dir.src" value="src"/>
+  <property name="dir.resources" value="resources"/>
+
+  <!-- ビルド成果物ディレクトリ -->
+  <property name="dir.target" value="out/Ant"/>
+  <property name="dir.target.clsAndRes" value="${dir.target}/clsAndRes"/>
+
+  <!-- JavaDoc -->
+  <property name="dir.javaDoc" value="out/doc"/> <!-- IDEA の構成する出力先と同じフォルダを指定している -->
+  <property name="window-title" value="JD - TaskTimeManager"/>
+
+  <!-- tasks -->
+  <!-- JARファイル作成(開発用) -->
+  <target name="makeJar" description="開発用JARファイル作成">
+    <!-- 作業用ディレクトリのcleanup -->
+    <antcall target="clean"/>
+    <antcall target="compile"/>
+    <echo message="JARファイルを作成します。"/>
+    <jar basedir="${dir.target.clsAndRes}"
+         destfile="${base}/${dir.target}/${jarname}.jar"
+         manifest="src/META-INF/MANIFEST.MF"/>
+  </target>
+
+  <!-- コンパイル -->
+  <target name="compile" description="コンパイル">
+    <echo message="コンパイルを開始します。"/>
+    <mkdir dir="${dir.target.clsAndRes}"/>
+    <javac srcdir="${dir.src}"
+           destdir="${dir.target.clsAndRes}"
+           encoding="${src.enc}"
+           source="1.8"
+           target="1.8"
+           includeAntRuntime="false"
+           debug="true"
+    />
+    <copy todir="${dir.target.clsAndRes}">
+      <fileset dir="${dir.src}" includes="**/*.fxml"/>
+    </copy>
+  </target>
+
+  <!-- デプロイ用ZIPファイルの作成 -->
+  <target name="makeZip" description="デプロイ用ZIPファイルの作成">
+    <echo message="成果物をZIPファイルに梱包します。"/>
+    <zip destfile="${base}/${dir.target}/${zipname}.zip"
+         basedir="${dir.target}"
+         excludes="${dir.target.clsAndRes}/*"
+    />
+  </target>
+
+  <!-- ビルド成果物削除 -->
+  <target name="cleanAll" description="ビルド成果物削除">
+    <delete dir="${dir.target}"/>
+  </target>
+
+  <target name="clean" description="ビルド成果物削除">
+    <delete>
+      <fileset dir="${dir.target}" includes="**"/>
+    </delete>
+  </target>
+
+  <!-- JavaDoc -->
+  <target name="javaDoc" description="JavaDocの生成">
+    <antcall target="cleanJavaDoc"/>
+    <javadoc destdir="${dir.javaDoc}"
+             encoding="UTF-8"
+             version="true"
+             access="private"
+             use="true"
+             windowtitle="${window-title}">
+      <sourcepath path="${dir.src}"/>
+      <package name="MainApp.*"/>
+    </javadoc>
+  </target>
+  <target name="cleanJavaDoc">
+    <delete dir="${dir.javaDoc}"/>
+  </target>
+</project>
